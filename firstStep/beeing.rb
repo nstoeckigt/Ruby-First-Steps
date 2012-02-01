@@ -2,16 +2,17 @@ require_relative 'entity.rb'
 
 class Beeing < Entity
   def initialize(position, direction)
-    super
+    super(position, direction)
+    @alive = true
   end
 
   # calculate new position
   def calculatePos(direction)
-    new_position = @position
-    
+    new_position = @position.clone
+
     case direction
     when 'N'
-      new_position.y - 1
+      new_position.y -= 1
     when 'O'
       new_position.x += 1
     when 'S'
@@ -24,14 +25,13 @@ class Beeing < Entity
 
   # perform the step
   def doStep(direction)
+    @direction = direction
     value = Array.new
-    value << @position
-printf("o: %02d-%02d [%d]\n", @position.y, @position.x, value.size)
-    
+    value << @position.clone
     @position = calculatePos(direction)
-    
     value << @position
-printf("n: %02d-%02d [%d]\n", @position.y, @position.x, value.size)
     return value
   end
+
+  attr_accessor :alive
 end

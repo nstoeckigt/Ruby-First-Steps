@@ -23,25 +23,25 @@ class Map
   # check for entities
   def analyse(sign, pos)
     if sign.eql? "+"
-      @map[pos.y][pos.x] =  Border.new(pos)
+      @map[pos.y][pos.x] = Border.new(pos)
     end
     if sign.eql? " "
       @map[pos.y][pos.x] = Entity.new(pos)
     end
     if sign.eql? "]"
-      exit = Entity.new(pos, '')
+      exit = Exit.new(pos)
       @exit = exit
       @map[pos.y][pos.x] = exit
     end
     if sign.eql? "@"
       monster = Monster.new(pos, 'S')
-      @monsters << monster
-      @map[pos.y][pos.x] = monster
+      @monsters << monster.clone
+      @map[pos.y][pos.x] = @monsters[@monsters.length-1]
     end
     if sign.eql? "#"
       rock = Rock.new(pos)
-      @rocks << rock
-      @map[pos.y][pos.x] = rock
+      @rocks << rock.clone
+      @map[pos.y][pos.x] = @rocks[@rocks.length-1]
     end
     if sign.eql? "X"
       @player = Player.new(pos, 'S')
@@ -60,7 +60,7 @@ class Map
           @map << Array.new
           pos.x = 0
           line.each_char do |c|
-            analyse(c, pos)
+            analyse(c, pos.clone)
             pos.x += 1
           end #do
           pos.y += 1
@@ -97,35 +97,53 @@ class Map
   # draw entities changes
   def reDraw(direction)
     #chech for validity of move
-printf("\nP: %02d-%02d\n", @player.position.y, @player.position.x)
-    if checkStep(@player.calculatePos(direction))
+    sPos = @player.calculatePos(direction)
+    
+    if @player.checkStep(@map[sPos.y][sPos.x])
       ppos = @player.doStep(direction)    
-printf("%02d-%02d -> %02d-%02d\n", ppos[0].y, ppos[0].x, ppos[1].y, ppos[1].x)
+#printf("P: %02d-%02d -> %02d-%02d\n", ppos[0].y, ppos[0].x, ppos[1].y, ppos[1].x)
       @map[ppos[0].y][ppos[0].x] = Entity.new(ppos[0])
-      @map[ppos[1].y][ppos[1].x] = Player.new(ppos[1], direction)
+      @map[ppos[1].y][ppos[1].x] = @player
     end
     
-    @rocks.each do |rock|
-printf("\nR: %02d-%02d\n", rock.position.y, rock.position.x)    
-      rpos = rock.doFall
-printf("%02d-%02d -> %02d-%02d\n", rpos[0].y, rpos[0].x, rpos[1].y, rpos[1].x)
-      @map[rpos[0].y][rpos[0].x] = Entity.new(rpos[0])
-      @map[rpos[1].y][rpos[1].x] = Rock.new(rpos[1])
-    end
     @monsters.each do |monster|
-      mdir = monster.calculateDirection(@player.position)
-printf("\nM: %02d-%02d\t", monster.position.y, monster.position.x)
-      if checkStep(monster.calculatePos(mdir))
-        mpos = monster.doStep(mdir)
-printf("%02d-%02d -> %02d-%02d [%s]\n", mpos[0].y, mpos[0].x, mpos[1].y, mpos[1].x, mdir)
-        @map[mpos[0].y][mpos[0].x] = Entity.new(mpos[0])
-        @map[mpos[1].y][mpos[1].x] = Monster.new(mpos[1], mdir)
+      if monster.alive == true
+        mdir = monster.calculateDirection(@player.position)
+        sPos = Array.new
+        sPos << monster.calculatePos(mdir[0])
+        sPos << monster.calculatePos(mdir[1])
+        if monster.checkStep(@map[sPos[0].y][sPos[0].x])
+          mpos = monster.doStep(mdir[0])
+        elsif monster.checkStep(@map[sPos[1].y][sPos[1].x])
+          mpos = monster.doStep(mdir[1])
+        end
+        if defined? mpos and defined? mpos[0] and defined? mpos[1]
+#printf("M: %02d-%02d -> %02d-%02d [%s]\n", mpos[0].y, mpos[0].x, mpos[1].y, mpos[1].x, mdir)
+          @map[mpos[0].y][mpos[0].x] = Entity.new(mpos[0])
+          @map[mpos[1].y][mpos[1].x] = monster
+        end
       end
     end
-    draw
+
+#TODO: check alive routines and cloning!!!
+
+    @rocks.each do |rock|
+      if rock.checkStep(@map[rock.position.y+1][rock.position.x])
+        rpos = rock.doFall
+#printf("R: %02d-%02d -> %02d-%02d\n", rpos[0].y, rpos[0].x, rpos[1].y, rpos[1].x)
+        field = @map[rpos[1].y][rpos[1].x]
+        if field.class == Monster or field.class == Player
+          field.alive = false
+        end
+        @map[rpos[0].y][rpos[0].x] = Entity.new(rpos[0])
+        @map[rpos[1].y][rpos[1].x] = rock
+      end
+    end
+ 
+    draw #draw new map
 
     #determine win
-    if @exit.position.eql? @player.position
+    if @exit.position.isSame(@player.position)
       @won = true
     end
     
@@ -133,17 +151,12 @@ printf("%02d-%02d -> %02d-%02d [%s]\n", mpos[0].y, mpos[0].x, mpos[1].y, mpos[1]
   end # reDraw
 
   # check if step is available
-  def checkStep(position)
-    
-printf("\n")
-printf("y: '%02d' | x: '%02d'\n",position.y, position.x)
-printf("\n")
-    
+  def checkPlayerStep(position)
     field = @map[position.y][position.x]
-    if field.is_a?(Exit) or field.is_a?(Entity)
-      return true
-    else
+    if field.is_a?(Rock) or field.is_a?(Border)
       return false
+    else
+      return true
     end
   end
 

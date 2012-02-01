@@ -1,3 +1,7 @@
+# Author::    Nico Stöckigt  (mailto:nvs@tzi.de)
+# Copyright:: Copyright (C) 2012 Rubyans Group @ University Bremen
+# License::   CC3 sa-by-nc
+
 require_relative 'map.rb'
 
 # read a character without pressing enter and without printing to the screen
@@ -45,7 +49,7 @@ levels.each do |level|
   map = Map.new(lvl, level)
   map.draw
 
-  while map.won != true and map.player.alive == true
+  while map.won != true
     dir = nil
     if special > 2
       special = 0
@@ -84,7 +88,7 @@ levels.each do |level|
     when 70 # ENDE
       if special.eql? 2
         special = 0
-        printf("USER ABORT\n")
+        printf("\e[1;37mUSER ABORT\e[0m\n")
         exit 5
       end
     else
@@ -92,14 +96,16 @@ levels.each do |level|
     end
 
     if !dir.nil?
+dir.inspect
       map.reDraw(dir)
     end
   end
   
-  if map.player.alive.is_false
-    printf("\nYOU ARE DEAD!\n")
+  if map.player.alive != true
+    printf("\n\e[31mYOU ARE DEAD!\e[0m\n")
     exit 7
   end
   
 end # level loop
+printf("\n\e[1;34mYOU SUCCEDED ALL LEVELS - CONGRATULATIONS!\e[0m\n")
 exit 0
