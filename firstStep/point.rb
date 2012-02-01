@@ -1,5 +1,5 @@
 class Point
-  #include
+  include Comparable
   
   def initialize(x, y)
     @x = x

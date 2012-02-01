@@ -45,7 +45,7 @@ levels.each do |level|
   map = Map.new(lvl, level)
   map.draw
 
-  while map.won != true
+  while map.won != true and map.player.alive == true
     dir = nil
     if special > 2
       special = 0
@@ -55,33 +55,33 @@ levels.each do |level|
     key = getKey
 
     case key
-    when 27
+    when 27 # ESC
       special+=1
-    when 91
+    when 91 # control sequence
       special+=1
-    when 79
+    when 79 # control sequence
       special+=1
-    when 65
+    when 65 # Arrow Up
       if special.eql? 2
         dir = 'N'
         special = 0
       end
-    when 66
+    when 66 # Arrow Down
       if special.eql? 2
         dir = 'S'
         special = 0
       end
-    when 67
+    when 67 # Arrow Right
       if special.eql? 2
         dir = 'O'
         special = 0
       end
-    when 68
+    when 68 # Arrow Left
       if special.eql? 2
         dir = 'W'
         special = 0
       end
-    when 70
+    when 70 # ENDE
       if special.eql? 2
         special = 0
         printf("USER ABORT\n")
@@ -96,4 +96,10 @@ levels.each do |level|
     end
   end
   
+  if map.player.alive.is_false
+    printf("\nYOU ARE DEAD!\n")
+    exit 7
+  end
+  
 end # level loop
+exit 0

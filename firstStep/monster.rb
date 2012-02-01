@@ -1,8 +1,8 @@
 require_relative 'beeing.rb'
 
 class Monster < Beeing
-  def initilize(position, direction)
-    super(position, direction)
+  def initialize(position, direction)
+    super
   end
   
   def calculateDirection(position)
@@ -25,6 +25,7 @@ class Monster < Beeing
         dir = 'O'
       end
     end
+    return dir
   end
   
 end

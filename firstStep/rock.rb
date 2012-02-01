@@ -1,5 +1,5 @@
 class Rock < Entity
-  def initilize(position)
+  def initialize(position)
     super(position)
   end
   

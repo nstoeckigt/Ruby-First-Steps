@@ -2,7 +2,7 @@ require_relative 'entity.rb'
 
 class Border < Entity
 
-  def initilize(position)
+  def initialize(position)
     super(position)
   end
   
