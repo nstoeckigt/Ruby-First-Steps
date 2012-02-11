@@ -17,10 +17,10 @@ class Monster < Beeing
       ydir = 'N'
     end
     case @position.x <=> position.x
-    when -1
-      xdir = 'O'
-    else
+    when 1
       xdir = 'W'
+    else
+      xdir = 'O'
     end
 
     case dx <=> dy

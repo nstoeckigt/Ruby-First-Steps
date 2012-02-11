@@ -99,11 +99,11 @@ levels.each do |level|
 dir.inspect
       map.reDraw(dir)
     end
-  end
   
-  if map.player.alive != true
-    printf("\n\e[31mYOU ARE DEAD!\e[0m\n")
-    exit 7
+    if map.player.alive != true
+      printf("\n\e[31mYOU ARE DEAD!\e[0m\n")
+      exit 7
+    end
   end
   
 end # level loop

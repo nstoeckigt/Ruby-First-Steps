@@ -86,7 +86,8 @@ class Map
           mapLine << '@'
         elsif field.is_a?(Rock)
           mapLine << '#'
-        elsif field.is_a?(Entity)
+        #elsif field.is_a?(Entity)
+        else
           mapLine << ' '
         end
       end
@@ -96,38 +97,46 @@ class Map
   
   # draw entities changes
   def reDraw(direction)
-    #chech for validity of move
+    #check for validity of move
+    if @player.alive == false
+printf("dead player at '%02d:%02d'\n", @player.position.y, @player.position.x)
+    end
     sPos = @player.calculatePos(direction)
     
     if @player.checkStep(@map[sPos.y][sPos.x])
       ppos = @player.doStep(direction)    
 #printf("P: %02d-%02d -> %02d-%02d\n", ppos[0].y, ppos[0].x, ppos[1].y, ppos[1].x)
-      @map[ppos[0].y][ppos[0].x] = Entity.new(ppos[0])
-      @map[ppos[1].y][ppos[1].x] = @player
+      @map[ppos[0].y][ppos[0].x] = Entity.new(ppos[0]) #delete old position
+      @map[ppos[1].y][ppos[1].x] = @player #replace player itself
+    else
+      # inform player
     end
     
-    @monsters.each do |monster|
+    @monsters.each do |monster| #for all monsters
       if monster.alive == true
         mdir = monster.calculateDirection(@player.position)
         sPos = Array.new
         sPos << monster.calculatePos(mdir[0])
-        sPos << monster.calculatePos(mdir[1])
+        sPos << monster.calculatePos(mdir[1]) #alternative move
         if monster.checkStep(@map[sPos[0].y][sPos[0].x])
           mpos = monster.doStep(mdir[0])
-        elsif monster.checkStep(@map[sPos[1].y][sPos[1].x])
+        elsif monster.checkStep(@map[sPos[1].y][sPos[1].x]) #alternative move
           mpos = monster.doStep(mdir[1])
         end
         if defined? mpos and defined? mpos[0] and defined? mpos[1]
 #printf("M: %02d-%02d -> %02d-%02d [%s]\n", mpos[0].y, mpos[0].x, mpos[1].y, mpos[1].x, mdir)
-          @map[mpos[0].y][mpos[0].x] = Entity.new(mpos[0])
-          @map[mpos[1].y][mpos[1].x] = monster
+          if monster.position.isSame(@player.position)
+            @player.alive = false 
+          end
+          @map[mpos[0].y][mpos[0].x] = Entity.new(mpos[0]) #delete old position
+          @map[mpos[1].y][mpos[1].x] = monster #replace monster itself
         end
+      else
+printf("dead monster at '%02d:%02d'\n", monster.position.y, monster.position.x)
       end
     end
 
-#TODO: check alive routines and cloning!!!
-
-    @rocks.each do |rock|
+    @rocks.each do |rock| #for all rocks
       if rock.checkStep(@map[rock.position.y+1][rock.position.x])
         rpos = rock.doFall
 #printf("R: %02d-%02d -> %02d-%02d\n", rpos[0].y, rpos[0].x, rpos[1].y, rpos[1].x)
@@ -146,19 +155,7 @@ class Map
     if @exit.position.isSame(@player.position)
       @won = true
     end
-    
-    @player.alive = @map[@player.position.y][@player.position.x].is_a?(Player)
   end # reDraw
-
-  # check if step is available
-  def checkPlayerStep(position)
-    field = @map[position.y][position.x]
-    if field.is_a?(Rock) or field.is_a?(Border)
-      return false
-    else
-      return true
-    end
-  end
 
   attr_accessor :won
   attr_accessor :level
